@@ -1,9 +1,10 @@
 Comparison-of-Gaussian-and-Student-s-T-Copulas-in-Statistical-Arbitrage.
-This code generates various graphs and metrics comparing both copulas.
+This code generates various graphs and metrics comparing both copulas. Main source: https://fbe.unimelb.edu.au/__data/assets/pdf_file/0003/2592021/146.pdf
+
 
 INFO:
 
-We use two copulas, Gaussian and Student's T. Within each, we assess a rolling correlation, a fixed correlation and a smoothed correlation with EWMA. There is a look back period required for the rolling correlation, which we choose 63, 126 and 252. 
+We use two copulas, Gaussian and Student's T. Within each, we assess a rolling correlation, a fixed correlation and a smoothed correlation with EWMA. 
 
 ANALYSIS:
 
