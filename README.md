@@ -16,5 +16,12 @@ There are various parameters here. The most notable are:
 
 In config.py,  we can select a range of these. On a 10y period with some highly correlated and somewhat correlated companies:
 -  3 degrees of freedom work best (highest average Sharpe) for T fixed and rolling (which does fit the estimate v from source), but 4 degrees of freedom are best for the filtered model.
--  There is no large difference over smoothing factors, but it seems to influence the Gaussian copula more. 
+
+  <img width="832" height="499" alt="image" src="https://github.com/user-attachments/assets/e854f36c-8565-4e5a-a79b-0bb6fdc15622" />
+
+-  There is no large difference over smoothing factors, but it seems to influence the Gaussian copula more.
+<img width="828" height="498" alt="image" src="https://github.com/user-attachments/assets/0433368f-4981-4a32-9647-2a71cab3f918" />
+
+  
 -  Trading signal is interesting, showing best performance at 0.025.
+<img width="831" height="497" alt="image" src="https://github.com/user-attachments/assets/4cdbee4f-174e-4d63-9c95-f9f73606ef9a" />
