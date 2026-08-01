@@ -10,78 +10,7 @@ from config import (
     parameterGrid
 )
 
-def graphVEffect(results):
-    tOnly = results[
-        results["strategy"].str.contains("T")
-    ]
 
-    summary = (
-        tOnly
-        .groupby(["v", "strategy"])["sharpe"]
-        .mean()
-        .unstack()
-    )
-
-    summary.plot(
-        marker="o",
-        figsize=(10, 6)
-    )
-
-    plt.title("Effect of T degrees of freedom")
-    plt.xlabel("v")
-    plt.ylabel("Average Sharpe")
-    plt.tight_layout()
-    plt.savefig("v_effect.png", dpi=200)
-    plt.show()
-
-
-def graphAlphaEffect(results):
-    filteredOnly = results[
-        results["strategy"].isin([
-            "T filtered rolling",
-            "Gaussian filtered rolling"
-        ])
-    ]
-
-    summary = (
-        filteredOnly
-        .groupby(["rhoSmoothingAlpha", "strategy"])["sharpe"]
-        .mean()
-        .unstack()
-    )
-
-    summary.plot(
-        marker="o",
-        figsize=(10, 6)
-    )
-
-    plt.title("Effect of rho smoothing alpha")
-    plt.xlabel("rhoSmoothingAlpha")
-    plt.ylabel("Average Sharpe")
-    plt.tight_layout()
-    plt.savefig("alpha_effect.png", dpi=200)
-    plt.show()
-
-
-def graphSensitivityEffect(results):
-    summary = (
-        results
-        .groupby(["signalSensitivity", "strategy"])["sharpe"]
-        .mean()
-        .unstack()
-    )
-
-    summary.plot(
-        marker="o",
-        figsize=(10, 6)
-    )
-
-    plt.title("Effect of trading signal sensitivity")
-    plt.xlabel("signalSensitivity")
-    plt.ylabel("Average Sharpe")
-    plt.tight_layout()
-    plt.savefig("sensitivity_effect.png", dpi=200)
-    plt.show()
 def generateParameterCombinations():
     keys = list(parameterGrid.keys())
     values = list(parameterGrid.values())
@@ -110,14 +39,14 @@ def runAnalysis():
 
         for parameters in parameterCombinations:
             print(
-        f"[{runNumber}/{totalRuns}] "
-        f"Testing {ticker1}/{ticker2} | "
-        f"time={parameters.get('time')} | "
-        f"rolling={parameters.get('rollingCorrelationLookback')} | "
-        f"v={parameters.get('v')} | "
-        f"alpha={parameters.get('rhoSmoothingAlpha')} | "
-        f"sensitivity={parameters.get('signalSensitivity')}"
-) 
+                f"[{runNumber}/{totalRuns}] "
+                f"Testing {ticker1}/{ticker2} | "
+                f"time={parameters.get('time')} | "
+                f"rolling={parameters.get('rollingCorrelationLookback')} | "
+                f"v={parameters.get('v')} | "
+                f"alpha={parameters.get('rhoSmoothingAlpha')} | "
+                f"sensitivity={parameters.get('signalSensitivity')}"
+            )
 
             try:
                 rows = runBacktest(
@@ -150,6 +79,100 @@ def runAnalysis():
     )
 
     return results
+
+
+def graphVEffect(results):
+    if "v" not in results.columns:
+        print("No v column found.")
+        return
+
+    tOnly = results[
+        results["strategy"].str.contains("T")
+    ]
+
+    if tOnly.empty:
+        print("No T strategies found.")
+        return
+
+    summary = (
+        tOnly
+        .groupby(["v", "strategy"])["sharpe"]
+        .mean()
+        .unstack()
+    )
+
+    summary.plot(
+        marker="o",
+        figsize=(10, 6)
+    )
+
+    plt.title("Effect of T degrees of freedom")
+    plt.xlabel("v")
+    plt.ylabel("Average Sharpe")
+    plt.tight_layout()
+    plt.savefig("v_effect.png", dpi=200)
+    plt.show()
+
+
+def graphAlphaEffect(results):
+    if "rhoSmoothingAlpha" not in results.columns:
+        print("No rhoSmoothingAlpha column found.")
+        return
+
+    filteredOnly = results[
+        results["strategy"].isin([
+            "T filtered rolling",
+            "Gaussian filtered rolling"
+        ])
+    ]
+
+    if filteredOnly.empty:
+        print("No filtered rolling strategies found.")
+        return
+
+    summary = (
+        filteredOnly
+        .groupby(["rhoSmoothingAlpha", "strategy"])["sharpe"]
+        .mean()
+        .unstack()
+    )
+
+    summary.plot(
+        marker="o",
+        figsize=(10, 6)
+    )
+
+    plt.title("Effect of rho smoothing alpha")
+    plt.xlabel("rhoSmoothingAlpha")
+    plt.ylabel("Average Sharpe")
+    plt.tight_layout()
+    plt.savefig("alpha_effect.png", dpi=200)
+    plt.show()
+
+
+def graphSensitivityEffect(results):
+    if "signalSensitivity" not in results.columns:
+        print("No signalSensitivity column found.")
+        return
+
+    summary = (
+        results
+        .groupby(["signalSensitivity", "strategy"])["sharpe"]
+        .mean()
+        .unstack()
+    )
+
+    summary.plot(
+        marker="o",
+        figsize=(10, 6)
+    )
+
+    plt.title("Effect of trading signal sensitivity")
+    plt.xlabel("signalSensitivity")
+    plt.ylabel("Average Sharpe")
+    plt.tight_layout()
+    plt.savefig("sensitivity_effect.png", dpi=200)
+    plt.show()
 
 
 def graphAverageSharpeByStrategy(results):
@@ -227,12 +250,22 @@ def graphStrategyByCorrelationGroup(results):
 
 
 def graphRollingLookbackEffect(results):
+    if "rollingCorrelationLookback" not in results.columns:
+        print("No rollingCorrelationLookback column found.")
+        return
+
     rollingOnly = results[
         results["strategy"].isin([
             "T rolling",
-            "Gaussian rolling"
+            "Gaussian rolling",
+            "T filtered rolling",
+            "Gaussian filtered rolling"
         ])
     ]
+
+    if rollingOnly.empty:
+        print("No rolling strategies found.")
+        return
 
     summary = (
         rollingOnly
@@ -264,9 +297,14 @@ def graphFixedVsRollingT(results):
     tOnly = results[
         results["strategy"].isin([
             "T fixed",
-            "T rolling"
+            "T rolling",
+            "T filtered rolling"
         ])
     ]
+
+    if tOnly.empty:
+        print("No T strategies found.")
+        return
 
     summary = (
         tOnly
@@ -275,23 +313,18 @@ def graphFixedVsRollingT(results):
         .unstack()
     )
 
-    summary["T rolling minus T fixed"] = (
-        summary["T rolling"]
-        - summary["T fixed"]
+    summary.plot(
+        kind="bar",
+        figsize=(14, 7)
     )
 
-    summary["T rolling minus T fixed"].sort_values().plot(
-        kind="barh",
-        figsize=(10, 6)
-    )
-
-    plt.axvline(0, linestyle="--")
-    plt.title("T rolling versus T fixed by pair")
-    plt.xlabel("Sharpe difference")
-    plt.ylabel("Pair")
+    plt.title("T strategies by pair")
+    plt.xlabel("Pair")
+    plt.ylabel("Average Sharpe")
+    plt.xticks(rotation=45, ha="right")
     plt.tight_layout()
     plt.savefig(
-        "t_rolling_minus_t_fixed.png",
+        "t_strategies_by_pair.png",
         dpi=200
     )
     plt.show()
@@ -301,9 +334,14 @@ def graphFixedVsRollingGaussian(results):
     gaussianOnly = results[
         results["strategy"].isin([
             "Gaussian fixed",
-            "Gaussian rolling"
+            "Gaussian rolling",
+            "Gaussian filtered rolling"
         ])
     ]
+
+    if gaussianOnly.empty:
+        print("No Gaussian strategies found.")
+        return
 
     summary = (
         gaussianOnly
@@ -312,25 +350,18 @@ def graphFixedVsRollingGaussian(results):
         .unstack()
     )
 
-    summary["Gaussian rolling minus Gaussian fixed"] = (
-        summary["Gaussian rolling"]
-        - summary["Gaussian fixed"]
+    summary.plot(
+        kind="bar",
+        figsize=(14, 7)
     )
 
-    summary[
-        "Gaussian rolling minus Gaussian fixed"
-    ].sort_values().plot(
-        kind="barh",
-        figsize=(10, 6)
-    )
-
-    plt.axvline(0, linestyle="--")
-    plt.title("Gaussian rolling versus Gaussian fixed by pair")
-    plt.xlabel("Sharpe difference")
-    plt.ylabel("Pair")
+    plt.title("Gaussian strategies by pair")
+    plt.xlabel("Pair")
+    plt.ylabel("Average Sharpe")
+    plt.xticks(rotation=45, ha="right")
     plt.tight_layout()
     plt.savefig(
-        "gaussian_rolling_minus_gaussian_fixed.png",
+        "gaussian_strategies_by_pair.png",
         dpi=200
     )
     plt.show()
@@ -397,10 +428,18 @@ def printBestConfigurations(results):
         "strategy",
         "time",
         "rollingCorrelationLookback",
+        "v",
+        "rhoSmoothingAlpha",
+        "signalSensitivity",
         "totalReturn",
         "annualisedVolatility",
         "sharpe",
         "maxDrawdown"
+    ]
+
+    existingColumns = [
+        column for column in columns
+        if column in results.columns
     ]
 
     best = (
@@ -413,25 +452,143 @@ def printBestConfigurations(results):
     print("=" * 80)
     print("BEST CONFIGURATIONS")
     print("=" * 80)
-    print(best[columns].to_string(index=False))
+    print(best[existingColumns].to_string(index=False))
+
+
+PLOT_OPTIONS = {
+    "1": {
+        "name": "Average Sharpe by strategy",
+        "function": graphAverageSharpeByStrategy
+    },
+    "2": {
+        "name": "Sharpe by pair and strategy",
+        "function": graphStrategyByPair
+    },
+    "3": {
+        "name": "Sharpe by correlation group",
+        "function": graphStrategyByCorrelationGroup
+    },
+    "4": {
+        "name": "Rolling lookback effect",
+        "function": graphRollingLookbackEffect
+    },
+    "5": {
+        "name": "T strategies by pair",
+        "function": graphFixedVsRollingT
+    },
+    "6": {
+        "name": "Gaussian strategies by pair",
+        "function": graphFixedVsRollingGaussian
+    },
+    "7": {
+        "name": "Effect of T degrees of freedom v",
+        "function": graphVEffect
+    },
+    "8": {
+        "name": "Effect of smoothing alpha",
+        "function": graphAlphaEffect
+    },
+    "9": {
+        "name": "Effect of signal sensitivity",
+        "function": graphSensitivityEffect
+    }
+}
+
+
+def choosePlots(results):
+    print()
+    print("=" * 80)
+    print("CHOOSE GRAPHS TO PLOT")
+    print("=" * 80)
+
+    for key, option in PLOT_OPTIONS.items():
+        print(f"{key}. {option['name']}")
+
+    print()
+    print("Type graph numbers separated by commas.")
+    print("Example: 1,2,7")
+    print("Type 'all' to plot everything.")
+    print("Type 'none' to skip graphs.")
+    print()
+
+    choice = input("Graphs to plot: ").strip().lower()
+
+    if choice == "none":
+        print("Skipping graphs.")
+        return
+
+    if choice == "all":
+        selectedKeys = list(PLOT_OPTIONS.keys())
+    else:
+        selectedKeys = [
+            key.strip()
+            for key in choice.split(",")
+            if key.strip() in PLOT_OPTIONS
+        ]
+
+    if len(selectedKeys) == 0:
+        print("No valid graph choices selected.")
+        return
+
+    for key in selectedKeys:
+        option = PLOT_OPTIONS[key]
+
+        print()
+        print(f"Plotting: {option['name']}")
+
+        try:
+            option["function"](results)
+
+        except Exception as error:
+            print(
+                "FAILED TO PLOT:",
+                option["name"],
+                "|",
+                error
+            )
+
+
+def choosePrints(results):
+    print()
+    print("=" * 80)
+    print("CHOOSE TABLES TO PRINT")
+    print("=" * 80)
+
+    print("1. Best configurations")
+    print("2. Best strategy by group")
+    print("3. Best strategy by pair")
+    print("4. All")
+    print("5. None")
+
+    choice = input("Tables to print: ").strip().lower()
+
+    if choice == "1":
+        printBestConfigurations(results)
+
+    elif choice == "2":
+        printBestStrategyByGroup(results)
+
+    elif choice == "3":
+        printBestStrategyByPair(results)
+
+    elif choice == "4" or choice == "all":
+        printBestConfigurations(results)
+        printBestStrategyByGroup(results)
+        printBestStrategyByPair(results)
+
+    elif choice == "5" or choice == "none":
+        print("Skipping printed tables.")
+
+    else:
+        print("Invalid choice, skipping printed tables.")
 
 
 def main():
     results = runAnalysis()
 
-    printBestConfigurations(results)
-    printBestStrategyByGroup(results)
-    printBestStrategyByPair(results)
+    choosePrints(results)
+    choosePlots(results)
 
-    graphAverageSharpeByStrategy(results)
-    graphStrategyByPair(results)
-    graphStrategyByCorrelationGroup(results)
-    graphRollingLookbackEffect(results)
-    graphFixedVsRollingT(results)
-    graphFixedVsRollingGaussian(results)
-    graphVEffect(results)
-    graphAlphaEffect(results)
-    graphSensitivityEffect(results)
 
 if __name__ == "__main__":
     main()
